@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AgriSense — Smart Farm Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Figtree:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --cream:#f7f3ed;--cream2:#f0ebe2;--cream3:#e8e0d4;--parchment:#faf8f4;
+  --forest:#2d5a27;--forest2:#3d7a35;--forest3:#4e9a44;
+  --sage:#7aab72;--sage-light:#d4e8d0;--sage-pale:#eef6ec;
+  --terracotta:#c4622d;--terra-light:#fae8df;
+  --amber:#c78c1a;--amber-light:#fdf3d7;
+  --sky:#2e7bb4;--sky-light:#dceef8;
+  --text:#1c2b1a;--text2:#4a6047;--text3:#8aa085;
+  --border:#ddd8ce;--border2:#c8c0b4;
+  --shadow:0 1px 3px rgba(44,60,40,.08),0 4px 16px rgba(44,60,40,.06);
+  --shadow2:0 2px 8px rgba(44,60,40,.1),0 8px 32px rgba(44,60,40,.08);
+  --r:12px;--font:'Figtree',sans-serif;
+  --display:'Playfair Display',serif;--mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--cream);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle at 20% 20%,rgba(45,90,39,.04),transparent 50%),radial-gradient(circle at 80% 80%,rgba(196,98,45,.03),transparent 50%);pointer-events:none;z-index:0;}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:64px;background:var(--parchment);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;box-shadow:0 1px 0 var(--border),0 4px 20px rgba(44,60,40,.06);}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:20px;font-weight:700;color:var(--forest);letter-spacing:-.3px;}
+.logo-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--forest),var(--forest3));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(45,90,39,.3);}
+.logo-sub{font-family:var(--font);font-size:10px;font-weight:500;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;display:block;line-height:1;margin-top:1px;}
+.nav-tabs{display:flex;gap:2px;background:var(--cream2);padding:4px;border-radius:10px;border:1px solid var(--border);}
+.nav-tab{padding:7px 20px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text3);transition:all .2s;font-family:var(--font);}
+.nav-tab:hover{color:var(--text2);background:rgba(255,255,255,.6);}
+.nav-tab.active{background:white;color:var(--forest);box-shadow:0 1px 4px rgba(44,60,40,.12);font-weight:600;}
+.topbar-right{display:flex;align-items:center;gap:16px;}
+.status-pill{display:flex;align-items:center;gap:6px;background:var(--sage-pale);border:1px solid var(--sage-light);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500;color:var(--forest2);}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--forest3);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.clock{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text2);background:var(--cream2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;letter-spacing:.05em;}
+.btn-primary{background:var(--forest);color:white;border:none;padding:8px 18px;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.btn-primary:hover{background:var(--forest2);box-shadow:0 4px 12px rgba(45,90,39,.3);transform:translateY(-1px);}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:240px 1fr 270px;height:calc(100vh - 64px);position:relative;z-index:1;}
+
+/* SIDEBAR */
+.sidebar{background:var(--parchment);border-right:1px solid var(--border);overflow-y:auto;padding:20px 0;}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.sb-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:0 20px 8px;margin-top:20px;}
+.sb-label:first-child{margin-top:0;}
+.zone-row{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;border-left:3px solid transparent;transition:all .18s;border-radius:0 8px 8px 0;margin:1px 8px 1px 0;}
+.zone-row:hover{background:var(--sage-pale);}
+.zone-row.active{background:var(--sage-pale);border-left-color:var(--forest);}
+.zdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,.8);}
+.zname{flex:1;font-size:13px;font-weight:500;color:var(--text2);}
+.zone-row.active .zname{color:var(--forest);font-weight:600;}
+.chip{font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;}
+.chip-ok{background:var(--sage-light);color:var(--forest2);}
+.chip-warn{background:var(--amber-light);color:var(--amber);}
+.chip-crit{background:var(--terra-light);color:var(--terracotta);}
+.divider{height:1px;background:var(--border);margin:16px 20px;}
+.sys-stats{padding:0 20px;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(200,192,180,.4);}
+.stat-row:last-child{border-bottom:none;}
+.sl{font-size:11px;color:var(--text3);}
+.sv{font-family:var(--mono);font-size:11px;color:var(--text2);font-weight:500;}
+.sv.g{color:var(--forest2);}
+
+/* MAIN */
+.main{overflow-y:auto;background:var(--cream);}
+.main::-webkit-scrollbar{width:5px;}
+.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.view{display:none;padding:28px;}
+.view.active{display:block;}
+.view-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;}
+.view-title{font-family:var(--display);font-size:26px;font-weight:700;color:var(--text);letter-spacing:-.5px;}
+.view-title span{color:var(--forest);}
+.view-sub{font-size:12px;color:var(--text3);margin-top:4px;letter-spacing:.04em;}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
+.kpi{background:white;border-radius:var(--r);border:1px solid var(--border);padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow2);}
+.kpi-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0;}
+.kpi-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.kpi-val{font-family:var(--display);font-size:32px;font-weight:700;line-height:1;}
+.kpi-unit{font-size:16px;font-weight:400;opacity:.5;margin-left:2px;}
+.kpi-delta{font-size:11px;margin-top:8px;font-weight:500;}
+.up{color:var(--forest2)}.warn{color:var(--amber)}.crit{color:var(--terracotta)}
+
+/* CARDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
+.card{background:white;border-radius:var(--r);border:1px solid var(--border);padding:22px;box-shadow:var(--shadow);}
+.card-full{grid-column:1/-1;}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.card-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);display:flex;align-items:center;gap:7px;}
+.card-btn{font-size:11px;font-weight:600;color:var(--forest2);cursor:pointer;background:var(--sage-pale);border:1px solid var(--sage-light);padding:4px 10px;border-radius:6px;transition:all .2s;font-family:var(--font);}
+.card-btn:hover{background:var(--sage-light);color:var(--forest);}
+
+/* SENSORS */
+.sensor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.stile{background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:14px;transition:all .2s;cursor:pointer;}
+.stile:hover{background:white;box-shadow:var(--shadow);border-color:var(--sage-light);}
+.sname{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:6px;}
+.sval{font-family:var(--display);font-size:26px;font-weight:700;color:var(--text);line-height:1;}
+.sunit{font-size:13px;font-weight:400;opacity:.45;}
+.srange{font-size:10px;color:var(--text3);margin-top:4px;}
+.sbar{height:4px;background:var(--cream3);border-radius:2px;margin-top:10px;overflow:hidden;}
+.sfill{height:100%;border-radius:2px;transition:width 1s ease;}
+
+/* MAP */
+.map-wrap{aspect-ratio:16/8;background:var(--cream2);border-radius:10px;border:1px solid var(--border);position:relative;overflow:hidden;}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(45,90,39,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(45,90,39,.06) 1px,transparent 1px);background-size:40px 40px;}
+.zregion{position:absolute;border-radius:8px;border:1.5px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;font-family:var(--font);}
+.zregion:hover{transform:scale(1.02);z-index:5;box-shadow:var(--shadow2);}
+.zr-name{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
+.zr-val{font-family:var(--display);font-size:20px;font-weight:700;}
+.zr-crop{font-size:9px;opacity:.7;margin-top:1px;}
+.snode{position:absolute;width:11px;height:11px;border-radius:50%;border:2px solid;cursor:pointer;transition:transform .2s;}
+.snode:hover{transform:scale(1.4);z-index:10;}
+.snode::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:1px solid;animation:ping 2s infinite;opacity:.5;}
+@keyframes ping{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.5);opacity:0}}
+
+/* CHART */
+.chart-wrap{position:relative;}
+.legend{display:flex;gap:18px;margin-bottom:14px;flex-wrap:wrap;}
+.li{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;}
+.ldot{width:10px;height:10px;border-radius:50%;}
+.yaxis{position:absolute;left:0;top:0;bottom:24px;display:flex;flex-direction:column;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--text3);width:28px;padding-right:6px;text-align:right;}
+.cbody{margin-left:32px;}
+.carea{height:160px;}
+.carea svg{width:100%;height:100%;}
+.xaxis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:6px;}
+.rbtn-group{display:flex;gap:4px;}
+.rbtn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--cream);color:var(--text3);cursor:pointer;font-family:var(--font);transition:all .2s;}
+.rbtn.active{background:var(--forest);color:white;border-color:var(--forest);}
+.rbtn:hover:not(.active){background:var(--sage-pale);border-color:var(--sage-light);color:var(--forest2);}
+
+/* STREAM */
+.stream-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.ss-box{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+.ss-val{font-family:var(--display);font-size:22px;font-weight:700;}
+.ss-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-top:2px;font-weight:600;}
+.stream-head{display:flex;gap:10px;padding:6px 0;border-bottom:2px solid var(--border);margin-bottom:6px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);}
+.stream-box{height:180px;overflow:hidden;position:relative;}
+.stream-box::after{content:'';position:absolute;bottom:0;left:0;right:0;height:50px;background:linear-gradient(to top,white,transparent);pointer-events:none;}
+.srow{display:flex;gap:10px;padding:5px 0;border-bottom:1px solid rgba(200,192,180,.3);font-family:var(--mono);font-size:10px;color:var(--text3);animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.s-ts{min-width:68px}.s-zone{min-width:55px;color:var(--sky);font-weight:500}.s-topic{min-width:110px;color:var(--text2)}.s-val{min-width:60px;text-align:right;color:var(--forest2);font-weight:500}
+.s-ok{color:var(--forest2);font-weight:600}.s-warn{color:var(--amber);font-weight:600}.s-crit{color:var(--terracotta);font-weight:600}
+.stgl{background:var(--cream);border:1px solid var(--border);color:var(--text2);font-family:var(--font);font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;cursor:pointer;transition:all .2s;}
+.stgl:hover{background:var(--sage-pale);}
+
+/* ALERTS */
+.alert-list{display:flex;flex-direction:column;gap:10px;}
+.alert{display:flex;align-items:flex-start;gap:12px;padding:14px;border-radius:10px;border:1px solid;position:relative;overflow:hidden;}
+.alert::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.a-crit{background:var(--terra-light);border-color:rgba(196,98,45,.25);}
+.a-crit::before{background:var(--terracotta);}
+.a-warn{background:var(--amber-light);border-color:rgba(199,140,26,.25);}
+.a-warn::before{background:var(--amber);}
+.a-ok{background:var(--sage-pale);border-color:var(--sage-light);}
+.a-ok::before{background:var(--forest3);}
+.a-icon{font-size:18px;line-height:1;}
+.a-body{flex:1;}
+.a-title{font-size:13px;font-weight:600;color:var(--text);}
+.a-desc{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.4;}
+.a-meta{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:3px;}
+
+/* ML */
+.ml-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.ml-ok{display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:20px;background:var(--sage-pale);border:1px solid var(--sage-light);}
+.ml-ok span{font-size:12px;font-weight:700;color:var(--forest2);}
+.ml-tag{font-size:10px;color:var(--text3);text-align:center;padding:8px;background:var(--cream);border-radius:8px;margin-top:14px;border:1px solid var(--border);}
+.conf-rows{display:flex;flex-direction:column;gap:8px;}
+.crow{display:flex;align-items:center;gap:10px;}
+.clabel{font-size:11px;color:var(--text2);min-width:90px;font-weight:500;}
+.ctrack{flex:1;height:6px;background:var(--cream3);border-radius:3px;overflow:hidden;}
+.cfill{height:100%;border-radius:3px;transition:width 1.5s ease;}
+.cpct{font-family:var(--mono);font-size:11px;color:var(--text2);min-width:32px;text-align:right;}
+
+/* CROPS */
+.crop-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cc{background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:14px;transition:all .2s;}
+.cc:hover{background:white;box-shadow:var(--shadow);}
+.cc-emoji{font-size:22px;margin-bottom:6px;}
+.cc-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);}
+.cc-score{font-family:var(--display);font-size:20px;font-weight:700;margin-top:4px;}
+.cc-bar{height:4px;background:var(--cream3);border-radius:2px;margin-top:8px;overflow:hidden;}
+.cc-fill{height:100%;border-radius:2px;}
+
+/* RIGHT PANEL */
+.rp{background:var(--parchment);border-left:1px solid var(--border);overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
+.rp::-webkit-scrollbar{width:4px;}
+.rp::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.rp-card{background:white;border-radius:var(--r);border:1px solid var(--border);padding:18px;box-shadow:var(--shadow);}
+.rp-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:14px;}
+.weather-main{text-align:center;padding:10px 0 14px;}
+.w-emoji{font-size:40px;}
+.w-temp{font-family:var(--display);font-size:40px;font-weight:700;color:var(--text);line-height:1;margin-top:6px;}
+.w-cond{font-size:12px;color:var(--text3);margin-top:4px;font-weight:500;}
+.w-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;}
+.wcell{text-align:center;background:var(--cream);border-radius:8px;padding:8px;border:1px solid var(--border);}
+.wcell-val{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text2);}
+.wcell-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-top:2px;font-weight:600;}
+.forecast{display:flex;gap:6px;margin-top:12px;}
+.fc{flex:1;background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center;}
+.fc-day{font-size:8px;font-weight:700;text-transform:uppercase;color:var(--text3);}
+.fc-icon{font-size:16px;margin:4px 0;}
+.fc-temp{font-family:var(--mono);font-size:11px;color:var(--text2);}
+.irr-zones{display:flex;flex-direction:column;gap:10px;}
+.iz{background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:12px;transition:border-color .2s;}
+.iz:hover{border-color:var(--sage-light);}
+.iz-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.iz-name{font-size:12px;font-weight:600;color:var(--text2);}
+.tgl{width:36px;height:20px;border-radius:10px;border:none;cursor:pointer;position:relative;transition:background .3s;flex-shrink:0;}
+.tgl::before{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:white;top:3px;left:3px;transition:transform .3s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.tgl.on{background:var(--forest2);}
+.tgl.on::before{transform:translateX(16px);}
+.tgl.off{background:var(--border2);}
+.iz-bar{height:4px;background:var(--cream3);border-radius:2px;overflow:hidden;}
+.iz-fill{height:100%;border-radius:2px;}
+.iz-meta{display:flex;justify-content:space-between;margin-top:6px;}
+.iz-meta span{font-size:10px;color:var(--text3);}
+.mqtt-box{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:12px;height:90px;overflow:hidden;position:relative;}
+.mqtt-box::after{content:'';position:absolute;bottom:0;left:0;right:0;height:35px;background:linear-gradient(to top,var(--cream),transparent);pointer-events:none;}
+.mqline{font-family:var(--mono);font-size:9px;line-height:1.8;color:var(--text3);animation:fadeIn .2s ease;}
+.mqt{color:var(--forest2);}.mqv{color:var(--sky);}
+.season-rows{display:flex;flex-direction:column;}
+.sseason-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(200,192,180,.4);}
+.sseason-row:last-child{border-bottom:none;}
+.ssl{font-size:11px;color:var(--text3);}
+.ssv{font-family:var(--mono);font-size:11px;font-weight:600;}
+.ssv.g{color:var(--forest2);}
+
+/* ANALYTICS */
+.ab{background:white;border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:16px;box-shadow:var(--shadow);}
+.ag{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.ac{background:white;border:1px solid var(--border);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);}
+.zc-rows{display:flex;flex-direction:column;gap:8px;}
+.zc-row{display:flex;align-items:center;gap:10px;}
+.zc-name{font-size:12px;font-weight:500;color:var(--text2);min-width:80px;}
+.zc-bar{flex:1;height:8px;background:var(--cream3);border-radius:4px;overflow:hidden;}
+.zc-fill{height:100%;border-radius:4px;}
+.zc-val{font-family:var(--mono);font-size:11px;color:var(--text2);min-width:35px;text-align:right;}
+
+/* IRRIGATION */
+.irr-main-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.izc{background:white;border:1px solid var(--border);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);}
+.izc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.izc-name{font-family:var(--display);font-size:20px;font-weight:700;color:var(--text);}
+.izc-crop{font-size:11px;color:var(--text3);margin-top:2px;}
+.izc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0;}
+.izc-stat{background:var(--cream);border-radius:8px;border:1px solid var(--border);padding:10px;text-align:center;}
+.izc-stat-val{font-family:var(--display);font-size:18px;font-weight:700;color:var(--text);}
+.izc-stat-label{font-size:9px;text-transform:uppercase;color:var(--text3);margin-top:2px;font-weight:600;}
+.prog-row{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.prog-bar{flex:1;height:8px;background:var(--cream3);border-radius:4px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:4px;}
+.prog-pct{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text2);min-width:40px;}
+.sched-table{width:100%;border-collapse:collapse;font-size:12px;}
+.sched-table th{text-align:left;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:2px solid var(--border);font-weight:700;}
+.sched-table td{padding:10px 10px;border-bottom:1px solid var(--cream3);color:var(--text2);}
+.sched-table tr:last-child td{border-bottom:none;}
+
+/* ANOMALIES */
+.anom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.anom-card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);}
+.anom-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.anom-name{font-size:15px;font-weight:700;color:var(--text);}
+.abadge{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;}
+.ab-ok{background:var(--sage-pale);color:var(--forest2);border:1px solid var(--sage-light);}
+.ab-warn{background:var(--amber-light);color:var(--amber);border:1px solid rgba(199,140,26,.3);}
+.ab-crit{background:var(--terra-light);color:var(--terracotta);border:1px solid rgba(196,98,45,.3);}
+.anom-score{font-size:12px;color:var(--text2);margin-bottom:14px;padding:10px;background:var(--cream);border-radius:8px;border:1px solid var(--border);}
+.anom-rows{display:flex;flex-direction:column;gap:7px;}
+.arow{display:flex;align-items:center;gap:10px;}
+.alabel{font-size:11px;color:var(--text2);min-width:90px;font-weight:500;}
+.atrack{flex:1;height:6px;background:var(--cream3);border-radius:3px;overflow:hidden;}
+.afill{height:100%;border-radius:3px;}
+.apct{font-family:var(--mono);font-size:11px;color:var(--text2);min-width:32px;text-align:right;}
+.model-info{background:white;border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:16px;box-shadow:var(--shadow);}
+.model-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px;}
+.model-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.model-stat{border-radius:8px;padding:12px;text-align:center;}
+.model-stat-val{font-family:var(--display);font-size:24px;font-weight:700;}
+.model-stat-label{font-size:10px;text-transform:uppercase;color:var(--text3);margin-top:2px;font-weight:700;}
+
+@media(max-width:1100px){.layout{grid-template-columns:200px 1fr}.rp{display:none}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.layout{grid-template-columns:1fr}.sidebar{display:none}.g2,.g3{grid-template-columns:1fr}.sensor-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="logo">
+    <div class="logo-mark">🌱</div>
+    <div>AgriSense<span class="logo-sub">Farm Intelligence</span></div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showView('overview',this)">Overview</button>
+    <button class="nav-tab" onclick="showView('analytics',this)">Analytics</button>
+    <button class="nav-tab" onclick="showView('irrigation',this)">Irrigation</button>
+    <button class="nav-tab" onclick="showView('anomalies',this)">ML Anomalies</button>
+  </div>
+  <div class="topbar-right">
+    <div class="status-pill"><div class="sdot"></div>All Systems Nominal</div>
+    <div class="clock" id="clk">--:--:--</div>
+    <button class="btn-primary" onclick="alert('Exporting data...')">↓ Export Data</button>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-label">Farm Zones</div>
+    <div class="zone-row active" onclick="selZone(this,'Alpha','Wheat')"><div class="zdot" style="background:#4e9a44"></div><span class="zname">Zone Alpha</span><span class="chip chip-ok">OK</span></div>
+    <div class="zone-row" onclick="selZone(this,'Beta','Corn')"><div class="zdot" style="background:#c78c1a"></div><span class="zname">Zone Beta</span><span class="chip chip-warn">Low</span></div>
+    <div class="zone-row" onclick="selZone(this,'Gamma','Soy')"><div class="zdot" style="background:#4e9a44"></div><span class="zname">Zone Gamma</span><span class="chip chip-ok">OK</span></div>
+    <div class="zone-row" onclick="selZone(this,'Delta','Barley')"><div class="zdot" style="background:#c4622d"></div><span class="zname">Zone Delta</span><span class="chip chip-crit">Alert</span></div>
+    <div class="zone-row" onclick="selZone(this,'Epsilon','Sunflower')"><div class="zdot" style="background:#4e9a44"></div><span class="zname">Zone Epsilon</span><span class="chip chip-ok">OK</span></div>
+    <div class="zone-row" onclick="selZone(this,'Zeta','Rice')"><div class="zdot" style="background:#4e9a44"></div><span class="zname">Zone Zeta</span><span class="chip chip-ok">OK</span></div>
+    <div class="divider"></div>
+    <div class="sb-label" style="margin-top:0">System</div>
+    <div class="sys-stats">
+      <div class="stat-row"><span class="sl">Sensors Online</span><span class="sv g">142 / 144</span></div>
+      <div class="stat-row"><span class="sl">Data Rate</span><span class="sv" id="dataRate">247 pts/s</span></div>
+      <div class="stat-row"><span class="sl">MQTT Broker</span><span class="sv g">Connected</span></div>
+      <div class="stat-row"><span class="sl">Uptime</span><span class="sv">99.97%</span></div>
+      <div class="stat-row"><span class="sl">Latency</span><span class="sv" id="latVal">18ms</span></div>
+      <div class="stat-row"><span class="sl">Offline Sync</span><span class="sv g">Ready</span></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ── OVERVIEW ── -->
+    <div id="view-overview" class="view active">
+      <div class="view-header">
+        <div>
+          <div class="view-title">Farm <span>Dashboard</span></div>
+          <div class="view-sub" id="vsub">ZONE ALPHA · WHEAT · 41.0082°N 28.9784°E · SEASON 2025–26</div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-bar" style="background:linear-gradient(90deg,var(--forest),var(--sage))"></div><div class="kpi-label">Soil Moisture</div><div class="kpi-val" style="color:var(--forest)" id="kv-moisture">73<span class="kpi-unit">%</span></div><div class="kpi-delta up">↑ +2.4% last hour</div></div>
+        <div class="kpi"><div class="kpi-bar" style="background:linear-gradient(90deg,var(--amber),#e8b040)"></div><div class="kpi-label">Temperature</div><div class="kpi-val" style="color:var(--amber)" id="kv-temp">24.7<span class="kpi-unit">°C</span></div><div class="kpi-delta warn">↑ +1.2°C forecast</div></div>
+        <div class="kpi"><div class="kpi-bar" style="background:linear-gradient(90deg,var(--sky),#4ea8d8)"></div><div class="kpi-label">Crop Health Index</div><div class="kpi-val" style="color:var(--sky)" id="kv-health">91<span class="kpi-unit">/100</span></div><div class="kpi-delta up" style="color:var(--sky)">↑ Excellent — no anomalies</div></div>
+        <div class="kpi"><div class="kpi-bar" style="background:linear-gradient(90deg,var(--terracotta),#e08050)"></div><div class="kpi-label">Water Saved Today</div><div class="kpi-val" style="color:var(--terracotta)" id="kv-water">1,240<span class="kpi-unit">L</span></div><div class="kpi-delta up">↑ 40% vs baseline</div></div>
+      </div>
+
+      <div class="g2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">📡 Live Sensor Readings</div><span class="card-btn">View All</span></div>
+          <div class="sensor-grid">
+            <div class="stile"><div class="sname">Soil Moisture</div><div class="sval" id="s-m">73<span class="sunit">%</span></div><div class="srange">Optimal: 65–80%</div><div class="sbar"><div class="sfill" id="sf-m" style="width:73%;background:var(--forest2)"></div></div></div>
+            <div class="stile"><div class="sname">Temperature</div><div class="sval" id="s-t">24.7<span class="sunit">°C</span></div><div class="srange">Optimal: 18–28°C</div><div class="sbar"><div class="sfill" id="sf-t" style="width:62%;background:var(--amber)"></div></div></div>
+            <div class="stile"><div class="sname">Humidity</div><div class="sval" id="s-h">61<span class="sunit">%</span></div><div class="srange">Optimal: 50–70%</div><div class="sbar"><div class="sfill" id="sf-h" style="width:61%;background:var(--sky)"></div></div></div>
+            <div class="stile"><div class="sname">Light (Lux)</div><div class="sval" id="s-l">4.2<span class="sunit">k</span></div><div class="srange">Optimal: 2–6k lux</div><div class="sbar"><div class="sfill" id="sf-l" style="width:70%;background:var(--amber)"></div></div></div>
+            <div class="stile"><div class="sname">Soil pH</div><div class="sval" id="s-p">6.8<span class="sunit">pH</span></div><div class="srange">Optimal: 6.0–7.5</div><div class="sbar"><div class="sfill" id="sf-p" style="width:80%;background:var(--forest2)"></div></div></div>
+            <div class="stile"><div class="sname">CO₂ Level</div><div class="sval" id="s-c">412<span class="sunit">ppm</span></div><div class="srange">Ambient: 400–450</div><div class="sbar"><div class="sfill" id="sf-c" style="width:45%;background:var(--forest3)"></div></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">🗺️ Multi-Zone Field Map</div><span class="card-btn">Satellite</span></div>
+          <div class="map-wrap">
+            <div class="map-grid"></div>
+            <div class="zregion" style="left:5%;top:8%;width:37%;height:40%;border-color:rgba(78,154,68,.5);background:rgba(78,154,68,.08)"><div class="zr-name" style="color:var(--forest2)">Zone Alpha</div><div class="zr-val" style="color:var(--forest)">73%</div><div class="zr-crop" style="color:var(--forest2)">🌾 Wheat · OK</div></div>
+            <div class="zregion" style="left:45%;top:8%;width:26%;height:40%;border-color:rgba(199,140,26,.5);background:rgba(199,140,26,.08)"><div class="zr-name" style="color:var(--amber)">Zone Beta</div><div class="zr-val" style="color:var(--amber)">41%</div><div class="zr-crop" style="color:var(--amber)">🌽 Corn · Low</div></div>
+            <div class="zregion" style="left:74%;top:8%;width:23%;height:40%;border-color:rgba(78,154,68,.5);background:rgba(78,154,68,.08)"><div class="zr-name" style="color:var(--forest2)">Zone Gamma</div><div class="zr-val" style="color:var(--forest)">68%</div><div class="zr-crop" style="color:var(--forest2)">🌱 Soy · OK</div></div>
+            <div class="zregion" style="left:5%;top:55%;width:27%;height:37%;border-color:rgba(196,98,45,.5);background:rgba(196,98,45,.08)"><div class="zr-name" style="color:var(--terracotta)">Zone Delta</div><div class="zr-val" style="color:var(--terracotta)">28%</div><div class="zr-crop" style="color:var(--terracotta)">🌿 Barley · Alert</div></div>
+            <div class="zregion" style="left:35%;top:55%;width:32%;height:37%;border-color:rgba(78,154,68,.5);background:rgba(78,154,68,.08)"><div class="zr-name" style="color:var(--forest2)">Zone Epsilon</div><div class="zr-val" style="color:var(--forest)">71%</div><div class="zr-crop" style="color:var(--forest2)">🌻 Sunflower · OK</div></div>
+            <div class="zregion" style="left:70%;top:55%;width:27%;height:37%;border-color:rgba(78,154,68,.5);background:rgba(78,154,68,.08)"><div class="zr-name" style="color:var(--forest2)">Zone Zeta</div><div class="zr-val" style="color:var(--forest)">65%</div><div class="zr-crop" style="color:var(--forest2)">🌾 Rice · OK</div></div>
+            <div class="snode" style="left:18%;top:22%;background:rgba(78,154,68,.3);border-color:var(--forest2)"></div>
+            <div class="snode" style="left:30%;top:36%;background:rgba(78,154,68,.3);border-color:var(--forest2);animation-delay:.5s"></div>
+            <div class="snode" style="left:54%;top:22%;background:rgba(199,140,26,.3);border-color:var(--amber);animation-delay:.8s"></div>
+            <div class="snode" style="left:82%;top:25%;background:rgba(78,154,68,.3);border-color:var(--forest2);animation-delay:.3s"></div>
+            <div class="snode" style="left:15%;top:69%;background:rgba(196,98,45,.3);border-color:var(--terracotta);animation-delay:.6s"></div>
+            <div class="snode" style="left:50%;top:73%;background:rgba(78,154,68,.3);border-color:var(--forest2);animation-delay:.2s"></div>
+            <div class="snode" style="left:80%;top:67%;background:rgba(78,154,68,.3);border-color:var(--forest2);animation-delay:.9s"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">📊 24h Sensor Trends</div><div class="rbtn-group"><button class="rbtn" onclick="setRange(6,this)">6H</button><button class="rbtn" onclick="setRange(12,this)">12H</button><button class="rbtn active" onclick="setRange(24,this)">24H</button></div></div>
+          <div class="legend"><div class="li"><div class="ldot" style="background:var(--forest2)"></div>Moisture</div><div class="li"><div class="ldot" style="background:var(--amber)"></div>Temp</div><div class="li"><div class="ldot" style="background:var(--sky)"></div>Humidity</div></div>
+          <div class="chart-wrap">
+            <div class="yaxis"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
+            <div class="cbody"><div class="carea"><svg id="mainChart" viewBox="0 0 600 160" preserveAspectRatio="none"></svg></div><div class="xaxis" id="xLabels"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">⚡ MQTT Live Stream</div><button class="stgl" id="stglBtn" onclick="toggleStream()">Pause</button></div>
+          <div class="stream-stats">
+            <div class="ss-box"><div class="ss-val" style="color:var(--forest2)" id="msgCount">0</div><div class="ss-label">Messages</div></div>
+            <div class="ss-box"><div class="ss-val" style="color:var(--amber)" id="mqRate">0</div><div class="ss-label">Pts/sec</div></div>
+            <div class="ss-box"><div class="ss-val" style="color:var(--sky)">12</div><div class="ss-label">Topics</div></div>
+          </div>
+          <div class="stream-head"><span style="min-width:68px">Time</span><span style="min-width:55px">Zone</span><span style="min-width:110px">Topic</span><span style="min-width:60px;text-align:right">Value</span><span>Status</span></div>
+          <div class="stream-box" id="streamBox"></div>
+        </div>
+      </div>
+
+      <div class="g3">
+        <div class="card">
+          <div class="card-head"><div class="card-title">🔔 Active Alerts</div><span class="card-btn">All (7)</span></div>
+          <div class="alert-list">
+            <div class="alert a-crit"><div class="a-icon">🚨</div><div class="a-body"><div class="a-title">Zone Delta — Critical Drought</div><div class="a-desc">Soil moisture at 28% — auto-irrigation triggered.</div><div class="a-meta">2 min ago</div></div></div>
+            <div class="alert a-warn"><div class="a-icon">⚠️</div><div class="a-body"><div class="a-title">Zone Beta — Low Moisture</div><div class="a-desc">Moisture trending down (41%). Schedule irrigation in 4h.</div><div class="a-meta">18 min ago</div></div></div>
+            <div class="alert a-ok"><div class="a-icon">✅</div><div class="a-body"><div class="a-title">Zone Alpha — Irrigation Complete</div><div class="a-desc">Saved 340L vs manual baseline. Moisture +8%.</div><div class="a-meta">1 hour ago</div></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">🧠 ML Anomaly Detection</div><span class="card-btn">Configure</span></div>
+          <div class="ml-head"><div style="font-size:12px;color:var(--text2)">Zone Alpha — Current Scan</div><div class="ml-ok"><div class="sdot"></div><span>Normal</span></div></div>
+          <div class="conf-rows">
+            <div class="crow"><span class="clabel">Leaf Blight</span><div class="ctrack"><div class="cfill" style="width:8%;background:var(--forest3)"></div></div><span class="cpct" style="color:var(--forest2)">8%</span></div>
+            <div class="crow"><span class="clabel">Drought Stress</span><div class="ctrack"><div class="cfill" style="width:12%;background:var(--forest3)"></div></div><span class="cpct" style="color:var(--forest2)">12%</span></div>
+            <div class="crow"><span class="clabel">Nutrient Defic.</span><div class="ctrack"><div class="cfill" style="width:23%;background:var(--amber)"></div></div><span class="cpct" style="color:var(--amber)">23%</span></div>
+            <div class="crow"><span class="clabel">Root Rot</span><div class="ctrack"><div class="cfill" style="width:5%;background:var(--forest3)"></div></div><span class="cpct" style="color:var(--forest2)">5%</span></div>
+            <div class="crow"><span class="clabel">Pest Activity</span><div class="ctrack"><div class="cfill" style="width:9%;background:var(--forest3)"></div></div><span class="cpct" style="color:var(--forest2)">9%</span></div>
+          </div>
+          <div class="ml-tag">🧠 CropBERT-v2.1 · Accuracy <strong style="color:var(--forest2)">94.7%</strong> · Trained 3h ago</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">🌿 Crop Health</div><span class="card-btn">ML Scan</span></div>
+          <div class="crop-grid">
+            <div class="cc"><div class="cc-emoji">🌾</div><div class="cc-name">Wheat · Alpha</div><div class="cc-score" style="color:var(--forest)">91<span style="font-size:12px;opacity:.4">/100</span></div><div class="cc-bar"><div class="cc-fill" style="width:91%;background:var(--forest3)"></div></div></div>
+            <div class="cc"><div class="cc-emoji">🌽</div><div class="cc-name">Corn · Beta</div><div class="cc-score" style="color:var(--amber)">62<span style="font-size:12px;opacity:.4">/100</span></div><div class="cc-bar"><div class="cc-fill" style="width:62%;background:var(--amber)"></div></div></div>
+            <div class="cc"><div class="cc-emoji">🌱</div><div class="cc-name">Soy · Gamma</div><div class="cc-score" style="color:var(--forest)">88<span style="font-size:12px;opacity:.4">/100</span></div><div class="cc-bar"><div class="cc-fill" style="width:88%;background:var(--forest3)"></div></div></div>
+            <div class="cc"><div class="cc-emoji">🌿</div><div class="cc-name">Barley · Delta</div><div class="cc-score" style="color:var(--terracotta)">34<span style="font-size:12px;opacity:.4">/100</span></div><div class="cc-bar"><div class="cc-fill" style="width:34%;background:var(--terracotta)"></div></div></div>
+            <div class="cc"><div class="cc-emoji">🌻</div><div class="cc-name">Sunflower · Ε</div><div class="cc-score" style="color:var(--forest)">79<span style="font-size:12px;opacity:.4">/100</span></div><div class="cc-bar"><div class="cc-fill" style="width:79%;background:var(--sage)"></div></div></div>
+            <div class="cc"><div class="cc-emoji">🌾</div><div class="cc-name">Rice · Zeta</div><div class="cc-score" style="color:var(--forest)">85<span style="font-size:12px;opacity:.4">/100</span></div><div class="cc-bar"><div class="cc-fill" style="width:85%;background:var(--forest3)"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ANALYTICS ── -->
+    <div id="view-analytics" class="view">
+      <div class="view-header"><div><div class="view-title">Farm <span>Analytics</span></div><div class="view-sub">Historical trends & zone performance comparison</div></div></div>
+      <div class="ab">
+        <div class="card-head" style="margin-bottom:16px"><div class="card-title">📈 Multi-Zone Moisture (30 Days)</div><div class="rbtn-group"><button class="rbtn" onclick="setARange(7,this)">7D</button><button class="rbtn active" onclick="setARange(30,this)">30D</button><button class="rbtn" onclick="setARange(90,this)">90D</button></div></div>
+        <div class="legend"><div class="li"><div class="ldot" style="background:var(--forest2)"></div>Alpha</div><div class="li"><div class="ldot" style="background:var(--amber)"></div>Beta</div><div class="li"><div class="ldot" style="background:var(--sky)"></div>Gamma</div><div class="li"><div class="ldot" style="background:var(--terracotta)"></div>Delta</div></div>
+        <div class="chart-wrap">
+          <div class="yaxis"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
+          <div class="cbody"><div style="height:200px"><svg id="aChart" viewBox="0 0 600 200" preserveAspectRatio="none" style="width:100%;height:100%"></svg></div><div class="xaxis" id="aXLabels"></div></div>
+        </div>
+      </div>
+      <div class="ag">
+        <div class="ac">
+          <div class="card-head"><div class="card-title">📊 Zone Moisture Comparison</div></div>
+          <div class="zc-rows">
+            <div class="zc-row"><span class="zc-name">Zone Alpha</span><div class="zc-bar"><div class="zc-fill" style="width:73%;background:var(--forest3)"></div></div><span class="zc-val" style="color:var(--forest2)">73%</span></div>
+            <div class="zc-row"><span class="zc-name">Zone Beta</span><div class="zc-bar"><div class="zc-fill" style="width:41%;background:var(--amber)"></div></div><span class="zc-val" style="color:var(--amber)">41%</span></div>
+            <div class="zc-row"><span class="zc-name">Zone Gamma</span><div class="zc-bar"><div class="zc-fill" style="width:68%;background:var(--forest3)"></div></div><span class="zc-val" style="color:var(--forest2)">68%</span></div>
+            <div class="zc-row"><span class="zc-name">Zone Delta</span><div class="zc-bar"><div class="zc-fill" style="width:28%;background:var(--terracotta)"></div></div><span class="zc-val" style="color:var(--terracotta)">28%</span></div>
+            <div class="zc-row"><span class="zc-name">Zone Epsilon</span><div class="zc-bar"><div class="zc-fill" style="width:71%;background:var(--forest3)"></div></div><span class="zc-val" style="color:var(--forest2)">71%</span></div>
+            <div class="zc-row"><span class="zc-name">Zone Zeta</span><div class="zc-bar"><div class="zc-fill" style="width:65%;background:var(--forest3)"></div></div><span class="zc-val" style="color:var(--forest2)">65%</span></div>
+          </div>
+        </div>
+        <div class="ac">
+          <div class="card-head"><div class="card-title">💧 Water Savings</div></div>
+          <div style="background:var(--sage-pale);border:1px solid var(--sage-light);border-radius:10px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)">Total This Season</div><div style="font-family:var(--display);font-size:28px;font-weight:700;color:var(--forest);margin-top:4px">41,200 L</div></div><div style="font-size:36px">💧</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:700;color:var(--forest)">40%</div><div style="font-size:10px;text-transform:uppercase;color:var(--text3);margin-top:2px;font-weight:700">vs Baseline</div></div>
+            <div style="background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:700;color:var(--terracotta)">12.4t</div><div style="font-size:10px;text-transform:uppercase;color:var(--text3);margin-top:2px;font-weight:700">CO₂ Reduced</div></div>
+            <div style="background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:700;color:var(--forest)">+18%</div><div style="font-size:10px;text-transform:uppercase;color:var(--text3);margin-top:2px;font-weight:700">Yield Forecast</div></div>
+            <div style="background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center"><div style="font-family:var(--display);font-size:22px;font-weight:700;color:var(--sky)">23</div><div style="font-size:10px;text-transform:uppercase;color:var(--text3);margin-top:2px;font-weight:700">Anomalies Caught</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── IRRIGATION ── -->
+    <div id="view-irrigation" class="view">
+      <div class="view-header"><div><div class="view-title">Irrigation <span>Control</span></div><div class="view-sub">Real-time zone management · Predictive ML scheduling</div></div><button class="btn-primary" onclick="alert('Auto-scheduling all zones...')">⚡ Auto-Schedule All</button></div>
+      <div class="irr-main-grid">
+        <div class="izc"><div class="izc-head"><div><div class="izc-name">Zone Alpha</div><div class="izc-crop">🌾 Wheat · 14.2 ha</div></div><button class="tgl off" onclick="tglIrr(this,'ip-alpha')"></button></div><div class="izc-stats"><div class="izc-stat"><div class="izc-stat-val" style="color:var(--forest)">73%</div><div class="izc-stat-label">Moisture</div></div><div class="izc-stat"><div class="izc-stat-val" style="color:var(--sky)">340L</div><div class="izc-stat-label">Saved</div></div><div class="izc-stat"><div class="izc-stat-val">06:00</div><div class="izc-stat-label">Next Run</div></div></div><div class="prog-row"><div class="prog-bar"><div class="prog-fill" id="ip-alpha" style="width:0%;background:var(--forest2)"></div></div><span class="prog-pct" id="ip-alpha-txt">Idle</span></div></div>
+        <div class="izc"><div class="izc-head"><div><div class="izc-name">Zone Beta</div><div class="izc-crop">🌽 Corn · 9.8 ha</div></div><button class="tgl on" onclick="tglIrr(this,'ip-beta')"></button></div><div class="izc-stats"><div class="izc-stat"><div class="izc-stat-val" style="color:var(--amber)">41%</div><div class="izc-stat-label">Moisture</div></div><div class="izc-stat"><div class="izc-stat-val" style="color:var(--sky)">120L/h</div><div class="izc-stat-label">Flow</div></div><div class="izc-stat"><div class="izc-stat-val" style="color:var(--forest2)">65%</div><div class="izc-stat-label">Done</div></div></div><div class="prog-row"><div class="prog-bar"><div class="prog-fill" id="ip-beta" style="width:65%;background:var(--forest2)"></div></div><span class="prog-pct" id="ip-beta-txt">65%</span></div></div>
+        <div class="izc"><div class="izc-head"><div><div class="izc-name">Zone Delta</div><div class="izc-crop">🌿 Barley · 11.4 ha · ⚠️ Critical</div></div><button class="tgl on" onclick="tglIrr(this,'ip-delta')"></button></div><div class="izc-stats"><div class="izc-stat"><div class="izc-stat-val" style="color:var(--terracotta)">28%</div><div class="izc-stat-label">Moisture</div></div><div class="izc-stat"><div class="izc-stat-val" style="color:var(--terracotta)">200L/h</div><div class="izc-stat-label">Emergency</div></div><div class="izc-stat"><div class="izc-stat-val" style="color:var(--amber)">22%</div><div class="izc-stat-label">Done</div></div></div><div class="prog-row"><div class="prog-bar"><div class="prog-fill" id="ip-delta" style="width:22%;background:var(--terracotta)"></div></div><span class="prog-pct" id="ip-delta-txt" style="color:var(--terracotta)">22%</span></div></div>
+        <div class="izc"><div class="izc-head"><div><div class="izc-name">Zone Epsilon</div><div class="izc-crop">🌻 Sunflower · 8.6 ha</div></div><button class="tgl off" onclick="tglIrr(this,'ip-epsilon')"></button></div><div class="izc-stats"><div class="izc-stat"><div class="izc-stat-val" style="color:var(--forest)">71%</div><div class="izc-stat-label">Moisture</div></div><div class="izc-stat"><div class="izc-stat-val" style="color:var(--sky)">280L</div><div class="izc-stat-label">Saved</div></div><div class="izc-stat"><div class="izc-stat-val">18:00</div><div class="izc-stat-label">Next Run</div></div></div><div class="prog-row"><div class="prog-bar"><div class="prog-fill" id="ip-epsilon" style="width:0%;background:var(--forest2)"></div></div><span class="prog-pct" id="ip-epsilon-txt">Idle</span></div></div>
+      </div>
+      <div class="card card-full">
+        <div class="card-head"><div class="card-title">📅 Irrigation Schedule</div><span class="card-btn" onclick="alert('Adding new schedule...')">+ Add Schedule</span></div>
+        <table class="sched-table">
+          <thead><tr><th>Zone</th><th>Crop</th><th>Time</th><th>Duration</th><th>Volume</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Zone Alpha</td><td>🌾 Wheat</td><td>Tomorrow 06:00</td><td>45 min</td><td>~240L</td><td><span class="chip chip-ok">Scheduled</span></td><td><span class="card-btn" onclick="alert('Editing Zone Alpha...')">Edit</span></td></tr>
+            <tr><td>Zone Beta</td><td>🌽 Corn</td><td>Now (Active)</td><td>80 min</td><td>~480L</td><td><span class="chip chip-warn">Running</span></td><td><span class="card-btn" onclick="alert('Stopping Zone Beta...')">Stop</span></td></tr>
+            <tr><td>Zone Gamma</td><td>🌱 Soy</td><td>Tomorrow 08:30</td><td>35 min</td><td>~180L</td><td><span class="chip chip-ok">Scheduled</span></td><td><span class="card-btn" onclick="alert('Editing Zone Gamma...')">Edit</span></td></tr>
+            <tr><td>Zone Delta</td><td>🌿 Barley</td><td>Now (Emergency)</td><td>120 min</td><td>~720L</td><td><span class="chip chip-crit">Critical</span></td><td><span class="card-btn" onclick="alert('Stopping Zone Delta...')">Stop</span></td></tr>
+            <tr><td>Zone Epsilon</td><td>🌻 Sunflower</td><td>Today 18:00</td><td>50 min</td><td>~300L</td><td><span class="chip chip-ok">Scheduled</span></td><td><span class="card-btn" onclick="alert('Editing Zone Epsilon...')">Edit</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── ANOMALIES ── -->
+    <div id="view-anomalies" class="view">
+      <div class="view-header"><div><div class="view-title">ML <span>Anomaly Detection</span></div><div class="view-sub">CropBERT-v2.1 · Real-time crop health monitoring across all zones</div></div></div>
+      <div class="model-info">
+        <div class="model-title">🧠 CropBERT-v2.1 — Model Status</div>
+        <div class="model-stats">
+          <div class="model-stat" style="background:var(--sage-pale);border:1px solid var(--sage-light)"><div class="model-stat-val" style="color:var(--forest)">94.7%</div><div class="model-stat-label">Accuracy</div></div>
+          <div class="model-stat" style="background:var(--cream);border:1px solid var(--border)"><div class="model-stat-val" style="color:var(--text)">50k</div><div class="model-stat-label">Training Samples</div></div>
+          <div class="model-stat" style="background:var(--cream);border:1px solid var(--border)"><div class="model-stat-val" style="color:var(--sky)">23</div><div class="model-stat-label">Caught This Season</div></div>
+          <div class="model-stat" style="background:var(--cream);border:1px solid var(--border)"><div class="model-stat-val" style="color:var(--forest)">3h</div><div class="model-stat-label">Since Last Retrain</div></div>
+        </div>
+      </div>
+      <div class="anom-grid">
+        <div class="anom-card"><div class="anom-head"><div class="anom-name">🌾 Zone Alpha — Wheat</div><div class="abadge ab-ok">Normal</div></div><div class="anom-score">Overall health: <strong style="color:var(--forest)">91/100</strong> · No significant anomalies.</div><div class="anom-rows"><div class="arow"><span class="alabel">Leaf Blight</span><div class="atrack"><div class="afill" style="width:8%;background:var(--forest3)"></div></div><span class="apct" style="color:var(--forest2)">8%</span></div><div class="arow"><span class="alabel">Drought Stress</span><div class="atrack"><div class="afill" style="width:12%;background:var(--forest3)"></div></div><span class="apct" style="color:var(--forest2)">12%</span></div><div class="arow"><span class="alabel">Nutrient Defic.</span><div class="atrack"><div class="afill" style="width:23%;background:var(--amber)"></div></div><span class="apct" style="color:var(--amber)">23%</span></div><div class="arow"><span class="alabel">Root Rot</span><div class="atrack"><div class="afill" style="width:5%;background:var(--forest3)"></div></div><span class="apct" style="color:var(--forest2)">5%</span></div><div class="arow"><span class="alabel">Pest Activity</span><div class="atrack"><div class="afill" style="width:9%;background:var(--forest3)"></div></div><span class="apct" style="color:var(--forest2)">9%</span></div></div></div>
+        <div class="anom-card"><div class="anom-head"><div class="anom-name">🌽 Zone Beta — Corn</div><div class="abadge ab-warn">Warning</div></div><div class="anom-score">Overall health: <strong style="color:var(--amber)">62/100</strong> · Drought stress & nutrient deficiency.</div><div class="anom-rows"><div class="arow"><span class="alabel">Leaf Blight</span><div class="atrack"><div class="afill" style="width:18%;background:var(--forest3)"></div></div><span class="apct" style="color:var(--forest2)">18%</span></div><div class="arow"><span class="alabel">Drought Stress</span><div class="atrack"><div class="afill" style="width:72%;background:var(--amber)"></div></div><span class="apct" style="color:var(--amber)">72%</span></div><div class="arow"><span class="alabel">Nutrient Defic.</span><div class="atrack"><div class="afill" style="width:58%;background:var(--amber)"></div></div><span class="apct" style="color:var(--amber)">58%</span></div><div class="arow"><span class="alabel">Root Rot</span><div class="atrack"><div class="afill" style="width:11%;background:var(--forest3)"></div></div><span class="apct" style="color:var(--forest2)">11%</span></div><div class="arow"><span class="alabel">Pest Activity</span><div class="atrack"><div class="afill" style="width:22%;background:var(--amber)"></div></div><span class="apct" style="color:var(--amber)">22%</span></div></div></div>
+        <div class="anom-card"><div class="anom-head"><div class="anom-name">🌿 Zone Delta — Barley</div><div class="abadge ab-crit">Critical</div></div><div class="anom-score" style="background:var(--terra-light);border-color:rgba(196,98,45,.25)">Overall health: <strong style="color:var(--terracotta)">34/100</strong> · Critical drought & multi-stress event.</div><div class="anom-rows"><div class="arow"><span class="alabel">Leaf Blight</span><div class="atrack"><div class="afill" style="width:45%;background:var(--amber)"></div></div><span class="apct" style="color:var(--amber)">45%</span></div><div class="arow"><span class="alabel">Drought Stress</span><div class="atrack"><div class="afill" style="width:91%;background:var(--terracotta)"></div></div><span class="apct" style="color:var(--terracotta)">91%</span></div><div class="arow"><span class="alabel">Nutrient Defic.</span><div class="atrack"><div class="afill" style="width:67%;background:var(--amber)"></div></div><span class="apct" style="color:var(--amber)">67%</span></div><div class="arow"><span class="alabel">Root Rot</span><div class="atrack"><div class="afill" style="width:38%;background:var(--amber)"></div></div><span class="apct" style="color:var(--amber)">38%</span></div><div class="arow"><span class="alabel">Pest Activity</span><div class="atrack"><div class="afill" style="width:29%;background:var(--forest3)"></div></div><span class="apct" style="color:var(--forest2)">29%</span></div></div></div>
+        <div class="anom-card"><div class="anom-head"><div class="anom-name">🌱 Zone Gamma — Soy</div><div class="abadge ab-ok">Normal</div></div><div class="anom-score">Overall health: <strong style="color:var(--forest)">88/100</strong> · Minor nutrient watch only.</div><div class="anom-rows"><div class="arow"><span class="alabel">Leaf Blight</span><div class="atrack"><div class="afill" style="width:6%;background:var(--forest3)"></div></div><span class="apct" style="color:var(--forest2)">6%</span></div><div class="arow"><span class="alabel">Drought Stress</span><div class="atrack"><div class="afill" style="width:18%;background:var(--forest3)"></div></div><span class="apct" style="color:var(--forest2)">18%</span></div><div class="arow"><span class="alabel">Nutrient Defic.</span><div class="atrack"><div class="afill" style="width:31%;background:var(--amber)"></div></div><span class="apct" style="color:var(--amber)">31%</span></div><div class="arow"><span class="alabel">Root Rot</span><div class="atrack"><div class="afill" style="width:4%;background:var(--forest3)"></div></div><span class="apct" style="color:var(--forest2)">4%</span></div><div class="arow"><span class="alabel">Pest Activity</span><div class="atrack"><div class="afill" style="width:7%;background:var(--forest3)"></div></div><span class="apct" style="color:var(--forest2)">7%</span></div></div></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <aside class="rp">
+    <div class="rp-card">
+      <div class="rp-title">Weather · Istanbul</div>
+      <div class="weather-main"><div class="w-emoji">⛅</div><div class="w-temp">24.7°</div><div class="w-cond">Partly Cloudy</div></div>
+      <div class="w-row"><div class="wcell"><div class="wcell-val">61%</div><div class="wcell-label">Humidity</div></div><div class="wcell"><div class="wcell-val">12</div><div class="wcell-label">km/h</div></div><div class="wcell"><div class="wcell-val">0%</div><div class="wcell-label">Rain</div></div></div>
+      <div class="forecast"><div class="fc"><div class="fc-day">Mon</div><div class="fc-icon">☀️</div><div class="fc-temp">27°</div></div><div class="fc"><div class="fc-day">Tue</div><div class="fc-icon">⛅</div><div class="fc-temp">24°</div></div><div class="fc"><div class="fc-day">Wed</div><div class="fc-icon">🌧️</div><div class="fc-temp">18°</div></div><div class="fc"><div class="fc-day">Thu</div><div class="fc-icon">⛅</div><div class="fc-temp">22°</div></div><div class="fc"><div class="fc-day">Fri</div><div class="fc-icon">☀️</div><div class="fc-temp">26°</div></div></div>
+    </div>
+    <div class="rp-card">
+      <div class="rp-title">Quick Irrigation</div>
+      <div class="irr-zones">
+        <div class="iz"><div class="iz-top"><span class="iz-name">Zone Alpha</span><button class="tgl off" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button></div><div class="iz-bar"><div class="iz-fill" style="width:0%;background:var(--forest2)"></div></div><div class="iz-meta"><span>Sched. 06:00</span><span>340L saved</span></div></div>
+        <div class="iz"><div class="iz-top"><span class="iz-name">Zone Beta</span><button class="tgl on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button></div><div class="iz-bar"><div class="iz-fill" style="width:65%;background:var(--forest2)"></div></div><div class="iz-meta"><span>Active · 65%</span><span>120L/hr</span></div></div>
+        <div class="iz"><div class="iz-top"><span class="iz-name">Zone Delta</span><button class="tgl on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></button></div><div class="iz-bar"><div class="iz-fill" style="width:22%;background:var(--terracotta)"></div></div><div class="iz-meta"><span>Emergency 22%</span><span>200L/hr</span></div></div>
+      </div>
+    </div>
+    <div class="rp-card">
+      <div class="rp-title">MQTT Broker · Live</div>
+      <div class="mqtt-box" id="mqttBox"></div>
+    </div>
+    <div class="rp-card">
+      <div class="rp-title">Season Summary</div>
+      <div class="season-rows">
+        <div class="sseason-row"><span class="ssl">Water Saved</span><span class="ssv g">41,200 L</span></div>
+        <div class="sseason-row"><span class="ssl">vs Baseline</span><span class="ssv g">↓ 40%</span></div>
+        <div class="sseason-row"><span class="ssl">Anomalies Caught</span><span class="ssv">23</span></div>
+        <div class="sseason-row"><span class="ssl">Yield Forecast</span><span class="ssv g">+18%</span></div>
+        <div class="sseason-row"><span class="ssl">CO₂ Reduction</span><span class="ssv g">12.4t</span></div>
+        <div class="sseason-row"><span class="ssl">Sensors Deployed</span><span class="ssv">144</span></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+// CLOCK
+function tick(){const n=new Date();document.getElementById('clk').textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':');}
+setInterval(tick,1000);tick();
+
+// TABS
+function showView(id,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='analytics')renderAChart(30);
+}
+
+// ZONE SELECT
+function selZone(el,zone,crop){
+  document.querySelectorAll('.zone-row').forEach(r=>r.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('vsub').textContent=`ZONE ${zone.toUpperCase()} · ${crop.toUpperCase()} · 41.0082°N 28.9784°E · SEASON 2025–26`;
+  renderChart(24);
+}
+
+// CHART
+function genPts(n,base,jit,w,h,mn,mx){
+  let v=base;
+  return Array.from({length:n},(_,i)=>{
+    v=Math.min(mx,Math.max(mn,v+(Math.random()-.5)*jit));
+    return `${(i/(n-1))*w},${h-((v-mn)/(mx-mn))*h}`;
+  }).join(' ');
+}
+function renderChart(hours){
+  const svg=document.getElementById('mainChart');
+  if(!svg)return;
+  const pts=hours*3,w=600,h=160;
+  const m=genPts(pts,70,5,w,h,0,100);
+  const t=genPts(pts,55,4,w,h,0,100);
+  const hu=genPts(pts,60,4,w,h,0,100);
+  svg.innerHTML=`<defs><linearGradient id="gm" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(61,122,53,.2)"/><stop offset="100%" stop-color="rgba(61,122,53,0)"/></linearGradient></defs>`+
+  [0,1,2,3,4].map(i=>`<line x1="0" y1="${i*h/4}" x2="${w}" y2="${i*h/4}" stroke="rgba(200,192,180,.5)" stroke-width="1"/>`).join('')+
+  `<polygon points="${m} ${w},${h} 0,${h}" fill="url(#gm)"/>
+  <polyline points="${m}" stroke="#3d7a35" stroke-width="2" fill="none" stroke-linejoin="round"/>
+  <polyline points="${t}" stroke="#c78c1a" stroke-width="1.5" fill="none" stroke-dasharray="5,3" stroke-linejoin="round"/>
+  <polyline points="${hu}" stroke="#2e7bb4" stroke-width="1.5" fill="none" stroke-dasharray="2,4" stroke-linejoin="round"/>`;
+  const now=new Date();
+  const labels=Array.from({length:5},(_,i)=>{const d=new Date(now-(hours-(i*hours/4))*3600000);return `${String(d.getHours()).padStart(2,'0')}:00`;});
+  document.getElementById('xLabels').innerHTML=labels.map(l=>`<span>${l}</span>`).join('');
+}
+renderChart(24);
+
+function setRange(h,btn){
+  btn.closest('.card').querySelectorAll('.rbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderChart(h);
+}
+
+function renderAChart(days){
+  const svg=document.getElementById('aChart');if(!svg)return;
+  const pts=Math.min(days*2,80),w=600,h=200;
+  const series=[{base:70,jit:6,color:'#3d7a35'},{base:45,jit:8,color:'#c78c1a'},{base:65,jit:5,color:'#2e7bb4'},{base:35,jit:10,color:'#c4622d'}];
+  let html=[0,1,2,3,4].map(i=>`<line x1="0" y1="${i*h/4}" x2="${w}" y2="${i*h/4}" stroke="rgba(200,192,180,.4)" stroke-width="1"/>`).join('');
+  series.forEach(s=>{html+=`<polyline points="${genPts(pts,s.base,s.jit,w,h,0,100)}" stroke="${s.color}" stroke-width="1.5" fill="none" stroke-linejoin="round"/>`;});
+  svg.innerHTML=html;
+  const labels=Array.from({length:5},(_,i)=>{const d=new Date(Date.now()-(days-(i*days/4))*86400000);return `${d.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]}`;});
+  const xl=document.getElementById('aXLabels');if(xl)xl.innerHTML=labels.map(l=>`<span>${l}</span>`).join('');
+}
+
+function setARange(d,btn){
+  btn.closest('.ab').querySelectorAll('.rbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderAChart(d);
+}
+
+// LIVE SENSORS
+const ss={m:73,t:24.7,h:61,l:4.2,p:6.8,c:412};
+function jit(v,r,mn,mx){return Math.min(mx,Math.max(mn,v+(Math.random()-.5)*r));}
+function updateSensors(){
+  ss.m=jit(ss.m,.5,55,90);ss.t=jit(ss.t,.12,18,32);ss.h=jit(ss.h,.4,45,75);
+  ss.l=jit(ss.l,.06,1,7);ss.p=jit(ss.p,.02,5.5,7.5);ss.c=jit(ss.c,2,380,460);
+  const f=(v,d)=>parseFloat(v.toFixed(d));
+  document.getElementById('s-m').innerHTML=f(ss.m,0)+'<span class="sunit">%</span>';
+  document.getElementById('s-t').innerHTML=f(ss.t,1)+'<span class="sunit">°C</span>';
+  document.getElementById('s-h').innerHTML=f(ss.h,0)+'<span class="sunit">%</span>';
+  document.getElementById('s-l').innerHTML=f(ss.l,1)+'<span class="sunit">k</span>';
+  document.getElementById('s-p').innerHTML=f(ss.p,1)+'<span class="sunit">pH</span>';
+  document.getElementById('s-c').innerHTML=Math.round(ss.c)+'<span class="sunit">ppm</span>';
+  document.getElementById('sf-m').style.width=ss.m+'%';
+  document.getElementById('sf-t').style.width=((ss.t-18)/14*100)+'%';
+  document.getElementById('sf-h').style.width=ss.h+'%';
+  document.getElementById('sf-l').style.width=(ss.l/7*100)+'%';
+  document.getElementById('sf-p').style.width=((ss.p-5.5)/2*100)+'%';
+  document.getElementById('sf-c').style.width=((ss.c-380)/80*100)+'%';
+  document.getElementById('kv-moisture').innerHTML=Math.round(ss.m)+'<span class="kpi-unit">%</span>';
+  document.getElementById('kv-temp').innerHTML=f(ss.t,1)+'<span class="kpi-unit">°C</span>';
+}
+setInterval(updateSensors,900);
+
+// STREAM
+let streamOn=true,msgCnt=0;
+const zones=['alpha','beta','gamma','delta','epsilon','zeta'];
+const topics=['soil/moisture','temp/ambient','humidity/rel','light/lux','ph/soil','co2/ppm','pressure/atm','wind/speed','leaf/wetness','npk/nitrogen','flow/irrigation','battery/level'];
+const units=['%','°C','%','klx','pH','ppm','hPa','km/h','%','mg/kg','L/h','%'];
+function getTs(){const n=new Date();return [n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':')+'.'+String(n.getMilliseconds()).padStart(3,'0');}
+function sbadge(t,v){if(t.includes('moisture')&&v<35)return '<span class="s-crit">CRIT</span>';if(t.includes('moisture')&&v<50)return '<span class="s-warn">LOW</span>';return '<span class="s-ok">OK</span>';}
+function addRow(){
+  if(!streamOn)return;
+  const z=zones[Math.floor(Math.random()*zones.length)];
+  const ti=Math.floor(Math.random()*topics.length);
+  const val=(25+Math.random()*75).toFixed(1);
+  msgCnt++;
+  const box=document.getElementById('streamBox');
+  const row=document.createElement('div');row.className='srow';
+  row.innerHTML=`<span class="s-ts">${getTs()}</span><span class="s-zone">${z.toUpperCase()}</span><span class="s-topic">${topics[ti]}</span><span class="s-val">${val}<span style="opacity:.5;font-size:8px">${units[ti]}</span></span>${sbadge(topics[ti],parseFloat(val))}`;
+  box.insertBefore(row,box.firstChild);
+  const rows=box.querySelectorAll('.srow');if(rows.length>25)rows[rows.length-1].remove();
+  document.getElementById('msgCount').textContent=msgCnt.toLocaleString();
+  document.getElementById('mqRate').textContent=Math.floor(200+Math.random()*80);
+}
+setInterval(addRow,1200);
+function toggleStream(){streamOn=!streamOn;document.getElementById('stglBtn').textContent=streamOn?'Pause':'Resume';}
+
+// MQTT TICKER
+function addMqLine(){
+  const z=zones[Math.floor(Math.random()*zones.length)];
+  const ti=Math.floor(Math.random()*topics.length);
+  const val=(25+Math.random()*75).toFixed(2);
+  const box=document.getElementById('mqttBox');
+  const line=document.createElement('div');line.className='mqline';
+  line.innerHTML=`<span class="mqt">farm/${z}/${topics[ti]}</span> <span class="mqv">${val}</span>`;
+  box.insertBefore(line,box.firstChild);
+  const ls=box.querySelectorAll('.mqline');if(ls.length>10)ls[ls.length-1].remove();
+}
+setInterval(addMqLine,1800);
+
+// WATER COUNTER
+let water=1240;
+setInterval(()=>{water+=Math.floor(Math.random()*2+1);document.getElementById('kv-water').innerHTML=water.toLocaleString()+'<span class="kpi-unit">L</span>';},2500);
+
+// IRRIGATION TOGGLES
+function tglIrr(btn,progId){
+  btn.classList.toggle('on');btn.classList.toggle('off');
+  const bar=document.getElementById(progId);
+  const txt=document.getElementById(progId+'-txt');
+  if(btn.classList.contains('on')){bar.style.width='5%';if(txt)txt.textContent='Starting...';}
+  else{bar.style.width='0%';if(txt)txt.textContent='Idle';}
+}
+
+// SYSTEM STAT ANIMATION
+setInterval(()=>{
+  document.getElementById('latVal').textContent=Math.floor(14+Math.random()*8)+'ms';
+  document.getElementById('dataRate').textContent=Math.floor(220+Math.random()*60)+' pts/s';
+},2000);
+</script>
+</body>
+</html>
